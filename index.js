@@ -35,11 +35,10 @@ var Preflight = function (url, options) {
 	});
 
 	browser.visit(url, internalOptions, function (error, browser) {
-		if (browser.error) {
-			this.errors = browser.errors;
-			deferred.reject();
+		if (error || browser.error) {
+			deferred.reject({errors: browser.errors});
 		} else {
-			deferred.resolve({success: true});
+			deferred.resolve({});
 		}
 	});
 

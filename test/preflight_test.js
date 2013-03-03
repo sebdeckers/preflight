@@ -26,12 +26,12 @@ exports.preflight = {
 	setUp: function (done) {
 		done();
 	},
-	'returns success': function (test) {
+	'Site is up': function (test) {
 		test.expect(1);
 
-		preflight('http://localhost/')
+		preflight('http://localhost:7357/')
 		.then(function (result) {
-			test.ok(result.success, 'Always passes');
+			test.ok(result);
 		})
 		.fail(function () {
 		})
