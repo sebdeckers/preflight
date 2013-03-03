@@ -1,4 +1,4 @@
-# Preflight testing
+# Preflight testing [![Build Status](https://travis-ci.org/cbas/preflight.png)](https://travis-ci.org/cbas/preflight)
 
 > Because "looks good to me" should not be famous last words.
 
