@@ -1,6 +1,6 @@
 'use strict';
 
-var grunt = require('grunt');
+var preflight = require('..');
 
 /*
 	======== A Handy Little Nodeunit Reference ========
@@ -23,16 +23,18 @@ var grunt = require('grunt');
 */
 
 exports.preflight = {
-	setUp: function(done) {
+	setUp: function (done) {
 		done();
 	},
-	'pro_forma': function(test) {
+	'returns success': function (test) {
 		test.expect(1);
 
-		grunt.log.writeln('Hello test');
-
-		test.ok(true, 'Always passes');
-
-		test.done();
+		preflight('http://localhost/')
+		.then(function (result) {
+			test.ok(result.success, 'Always passes');
+		})
+		.fail(function () {
+		})
+		.fin(test.done);
 	}
 };
