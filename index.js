@@ -1,6 +1,6 @@
 'use strict';
 
-var Q = require('Q');
+var Q = require('q');
 var _ = require('underscore');
 var Browser = require('zombie');
 
