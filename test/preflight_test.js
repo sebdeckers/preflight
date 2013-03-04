@@ -53,12 +53,21 @@ exports.preflight = {
 		})
 		.fin(test.done);
 	},
-	'Detect broken image': function (test) {
+	'Detect missing image': function (test) {
 		test.expect(1);
 
-		preflight('http://localhost:7357/broken_image.html')
+		preflight('http://localhost:7357/missing_image.html')
 		.fail(function (browser) {
 			test.equal(browser.error, 'TODO');
+		})
+		.fin(test.done);
+	},
+	'Detect missing external script': function (test) {
+		test.expect(1);
+
+		preflight('http://localhost:7357/missing_script.html')
+		.fail(function (browser) {
+			test.equal(browser.error.message, 'Unexpected identifier');
 		})
 		.fin(test.done);
 	},
@@ -67,7 +76,7 @@ exports.preflight = {
 
 		preflight('http://localhost:7357/script_error.html')
 		.fail(function (browser) {
-			test.equal(browser.error, 'TODO');
+			test.equal(browser.error.message, 'foo is not defined');
 		})
 		.fin(test.done);
 	},
@@ -85,7 +94,6 @@ exports.preflight = {
 
 		preflight('http://localhost:7357/broken_link.html')
 		.fail(function (error) {
-			// console.log('lollooooool', error);
 			test.ok(error);
 		})
 		.fin(test.done);

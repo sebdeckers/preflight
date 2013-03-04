@@ -15,9 +15,9 @@ var browserOptions = {
 };
 
 var internalOptions = {
-	// debug: true,
+	debug: false,
 	runScripts: true,
-	silent: false
+	silent: true
 };
 
 /*
@@ -37,6 +37,13 @@ var checkPage = function (browser, options, visited) {
 		throw new Error(browser);
 	}
 
+	var unavailable = function (resource) {
+		return resource.response.statusCode !== 200;
+	};
+	if (_.any(browser.resources, unavailable)) {
+		throw new Error(browser);
+	}
+
 	if (options.followInternalLinks) {
 		// for each link run checkPage with a cloned browser
 		// and wait for their promises to resolve
@@ -49,10 +56,12 @@ var checkPage = function (browser, options, visited) {
 var Preflight = function (url, options) {
 	var deferred = Q.defer();
 	var browser = new Browser(internalOptions);
+	browser.on('error', function () {
+		deferred.reject(browser);
+	});
 	var visited = {};
 	options = _.extend(browserOptions, options);
-
-	browser.visit(url, function (error, browser) {
+	browser.visit(url).then(function () {
 		if (browser.error) {
 			deferred.reject(browser);
 		} else {
