@@ -30,10 +30,63 @@ exports.preflight = {
 		test.expect(1);
 
 		preflight('http://localhost:7357/')
-		.then(function (result) {
-			test.ok(result);
+		.then(function (browser) {
+			test.equal(browser.statusCode, 200);
 		})
-		.fail(function () {
+		.fin(test.done);
+	},
+	'Site is down': function (test) {
+		test.expect(1);
+
+		preflight('https://localhost:7357/')
+		.fail(function (browser) {
+			test.equal(browser.error.code, 'ECONNRESET');
+		})
+		.fin(test.done);
+	},
+	'Page not found': function (test) {
+		test.expect(1);
+
+		preflight('http://localhost:7357/does_not_exist.html')
+		.fail(function (browser) {
+			test.equal(browser.statusCode, 404);
+		})
+		.fin(test.done);
+	},
+	'Detect broken image': function (test) {
+		test.expect(1);
+
+		preflight('http://localhost:7357/broken_image.html')
+		.fail(function (browser) {
+			test.equal(browser.error, 'TODO');
+		})
+		.fin(test.done);
+	},
+	'Detect script error': function (test) {
+		test.expect(1);
+
+		preflight('http://localhost:7357/script_error.html')
+		.fail(function (browser) {
+			test.equal(browser.error, 'TODO');
+		})
+		.fin(test.done);
+	},
+	'Follow internal links': function (test) {
+		test.expect(1);
+
+		preflight('http://localhost:7357/internal_link.html')
+		.then(function (browser) {
+			test.equal(browser.location.pathname, '/index.html');
+		})
+		.fin(test.done);
+	},
+	'Find broken links': function (test) {
+		test.expect(1);
+
+		preflight('http://localhost:7357/broken_link.html')
+		.fail(function (error) {
+			// console.log('lollooooool', error);
+			test.ok(error);
 		})
 		.fin(test.done);
 	}

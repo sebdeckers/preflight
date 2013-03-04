@@ -23,5 +23,6 @@
 	"maxstatements": false,
 	"maxcomplexity": false,
 	"maxlen": 80,
+	"smarttabs": true,
 	"node": true
 }
