@@ -7,6 +7,7 @@ module.exports = function (grunt) {
 			files: [
 				'Gruntfile.js',
 				'index.js',
+				'lib/**/*.js',
 				'<%= nodeunit.tests %>'
 			],
 			options: {
@@ -40,4 +41,5 @@ module.exports = function (grunt) {
 
 	grunt.registerTask('test', ['jshint', 'connect', 'nodeunit']);
 	grunt.registerTask('default', ['test']);
+	grunt.registerTask('dev', ['test', 'watch']);
 };
