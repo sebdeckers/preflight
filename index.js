@@ -1,9 +1,12 @@
 'use strict';
-/*jshint newcap:false */
 
 var Q = require('q');
 var _ = require('underscore');
-var Browser = require('zombie');
+var werker = require('werker');
+
+var pool = werker.pool(__dirname + '/lib/robot.js')
+		.max(5)
+		.ttl(5000);
 
 var browserOptions = {
 	loadTimeout: 10 * 1000,
@@ -14,70 +17,70 @@ var browserOptions = {
 	networkLog: undefined
 };
 
-var internalOptions = {
-	debug: false,
-	runScripts: true,
-	silent: true
+var scanTargets = function (targets, options) {
+	var promises = targets.map(function scanUrl (target) {
+		var deferred = Q.defer();
+		pool.worker().scan(target, options, function (error, report) {
+			if (error) {
+				deferred.reject([error]);
+			} else {
+				if (report.targets && report.targets.length) {
+					var promises = report.targets.map(scanUrl);
+					Q.allResolved(promises).then(function (reports) {
+						reports.unshift(report);
+						deferred.resolve(reports);
+					});
+				} else {
+					deferred.resolve([report]);
+				}
+			}
+		});
+		return deferred.promise;
+	});
+	return Q.allResolved(promises);
 };
 
-/*
-var externalOptions = {
-	debug: false,
-	loadCSS: false,
-	runScripts: false,
-	silent: true
-};
-*/
+var Preflight = function (targets, options, callback) {
+	var deferred = Q.defer();
 
-var checkPage = function (browser, options, visited) {
-	var promises = [];
-	visited[browser.location.href] = true;
-
-	if (browser.error) {
-		throw new Error(browser);
-	}
-
-	var unavailable = function (resource) {
-		return resource.response.statusCode !== 200;
-	};
-	if (_.any(browser.resources, unavailable)) {
-		throw new Error(browser);
-	}
-
-	if (options.followInternalLinks) {
-		// for each link run checkPage with a cloned browser
-		// and wait for their promises to resolve
-		throw new Error('Link crawling not yet supported');
-	}
-
-	return promises.length ? Q.all(promises) : browser;
-};
-
-var Preflight = function (url, options, callback) {
 	if (arguments.length === 2 && _.isFunction(options)) {
 		callback = options;
 		options = {};
 	}
 
-	var deferred = Q.defer();
-	var browser = new Browser(internalOptions);
-	browser.on('error', function () {
-		deferred.reject(browser);
-	});
-	var visited = {};
-	options = _.extend(browserOptions, options);
-	browser.visit(url).then(function () {
-		if (browser.error) {
-			deferred.reject(browser);
-		} else {
-			var result = Q.fcall(checkPage, browser, options, visited);
-			deferred.resolve(result);
-		}
-	});
+	if (_.isString(targets)) {
+		targets = [{url: targets}];
+	}
 
 	if (_.isFunction(callback)) {
-		deferred.promise.then(callback);
+		deferred.promise.then(function (report) {
+			callback(null, report);
+		});
 	}
+
+	options = _.extend({}, browserOptions, options);
+
+	scanTargets(targets, options).then(function (promises) {
+		var isRejected = function (promise) {
+			return promise.isRejected();
+		};
+		var getFulfillment = function (promise) {
+			var fulfillment = promise.valueOf();
+			return promise.isRejected() ?
+				fulfillment.exception :
+				fulfillment;
+		};
+
+		var state = _.any(promises, isRejected) ? 'reject' : 'resolve';
+		var reports = _.chain(promises)
+				.map(getFulfillment)
+				.flatten()
+				.value();
+
+		deferred[state]({
+			targets: reports
+		});
+	});
 
 	return deferred.promise;
 };
