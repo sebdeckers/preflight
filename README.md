@@ -41,6 +41,7 @@ Report: {
 }
 Endpoint: {
 	url: Href,
+	status: Number,
 	warnings: [Warning],
 	links: [Link],
 	assets: [Asset],
