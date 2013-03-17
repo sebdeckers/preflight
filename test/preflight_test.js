@@ -97,5 +97,13 @@ exports.preflight = {
 			test.ok(error);
 		})
 		.fin(test.done);
+	},
+	'Callback syntax': function (test) {
+		test.expect(1);
+
+		preflight('http://localhost:7357/', function () {
+			test.ok(true);
+		})
+		.fin(test.done);
 	}
 };

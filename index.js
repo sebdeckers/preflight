@@ -53,7 +53,12 @@ var checkPage = function (browser, options, visited) {
 	return promises.length ? Q.all(promises) : browser;
 };
 
-var Preflight = function (url, options) {
+var Preflight = function (url, options, callback) {
+	if (arguments.length === 2 && _.isFunction(options)) {
+		callback = options;
+		options = {};
+	}
+
 	var deferred = Q.defer();
 	var browser = new Browser(internalOptions);
 	browser.on('error', function () {
@@ -69,6 +74,10 @@ var Preflight = function (url, options) {
 			deferred.resolve(result);
 		}
 	});
+
+	if (_.isFunction(callback)) {
+		deferred.promise.then(callback);
+	}
 
 	return deferred.promise;
 };
