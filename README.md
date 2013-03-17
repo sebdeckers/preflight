@@ -32,3 +32,37 @@ Check if all links work when loaded as new page. Note that preflight respects `r
 	}
 }
 ```
+
+## Reporting
+
+```javascript
+Report: {
+	pages: [Endpoint]
+}
+Endpoint: {
+	url: Href,
+	warnings: [Warning],
+	links: [Link],
+	assets: [Asset],
+	timing: Timing
+}
+Href: String // "http://..."
+Warning: {
+	description: String,
+	type: WarningType
+}
+WarningType: String // "fatal", "warning"
+Link: {
+	url: Href,
+	status: Number // 200, 404, ...
+}
+Asset: {
+	url: Href,
+	status: Number, // 200, 404, ...
+	type: String // "css", "script", "img"
+}
+Timing: {
+	start: Date,
+	end: Date
+}
+```
