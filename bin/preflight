@@ -11,7 +11,7 @@ program
 	.version(pkg.version)
 	.usage('[options] <url ...>')
 	.option('-e, --engine [name]', 'Which a headless browser to use: ' +
-		'zombie, casper [zombie]', 'zombie')
+		'zombie, casper, phantom [zombie]', 'zombie')
 	.parse(process.argv);
 
 var links = program.args;

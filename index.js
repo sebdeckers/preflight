@@ -94,7 +94,8 @@ var Preflight = function (links, options, callback) {
 
 	var engines = {
 		'zombie': '/robots/zombie.js',
-		'casper': '/robots/casper.js'
+		'casper': '/robots/casper.js',
+		'phantom': '/robots/phantom.js'
 	};
 
 	var pool = werker
