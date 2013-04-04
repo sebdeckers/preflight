@@ -17,50 +17,8 @@ var browserOptions = {
 	networkLog: undefined
 };
 
-var scanTargets = function (targets, options) {
-	var promises = targets.map(function scanUrl (target) {
-		var deferred = Q.defer();
-		pool.worker().scan(target, options, function (error, report) {
-			if (error) {
-				deferred.reject([error]);
-			} else {
-				if (report.targets && report.targets.length) {
-					var promises = report.targets.map(scanUrl);
-					Q.allResolved(promises).then(function (reports) {
-						reports.unshift(report);
-						deferred.resolve(reports);
-					});
-				} else {
-					deferred.resolve([report]);
-				}
-			}
-		});
-		return deferred.promise;
-	});
-	return Q.allResolved(promises);
-};
-
-var Preflight = function (targets, options, callback) {
-	var deferred = Q.defer();
-
-	if (arguments.length === 2 && _.isFunction(options)) {
-		callback = options;
-		options = {};
-	}
-
-	if (_.isString(targets)) {
-		targets = [{url: targets}];
-	}
-
-	if (_.isFunction(callback)) {
-		deferred.promise.then(function (report) {
-			callback(null, report);
-		});
-	}
-
-	options = _.extend({}, browserOptions, options);
-
-	scanTargets(targets, options).then(function (promises) {
+var checkReport = function (callback) {
+	return function (promises) {
 		var isRejected = function (promise) {
 			return promise.isRejected();
 		};
@@ -71,16 +29,69 @@ var Preflight = function (targets, options, callback) {
 				fulfillment;
 		};
 
-		var state = _.any(promises, isRejected) ? 'reject' : 'resolve';
-		var reports = _.chain(promises)
+		var state = promises.some(isRejected) ? 'reject' : 'resolve';
+
+		var endpoints = _.chain(promises)
 				.map(getFulfillment)
 				.flatten()
 				.value();
 
-		deferred[state]({
-			targets: reports
+		callback(state, {
+			endpoints: endpoints
 		});
+	};
+};
+
+var scanTargets = function (links, options) {
+	var scanUrl = function (link, options) {
+		var deferred = Q.defer();
+		pool.worker().scan(link, options, function (error, endpoint) {
+			if (error) {
+				deferred.reject([error]);
+			} else {
+				if (endpoint.links && endpoint.links.length) {
+					scanTargets(endpoint.links, options)
+					.then(checkReport(function (state, report) {
+						var endpoints = [endpoint].concat(report.endpoints);
+						deferred[state](endpoints);
+					}));
+				} else {
+					deferred.resolve([endpoint]);
+				}
+			}
+		});
+		return deferred.promise;
+	};
+	var promises = links.map(function (link) {
+		return scanUrl(link, options);
 	});
+	return Q.allResolved(promises);
+};
+
+var Preflight = function (links, options, callback) {
+	var deferred = Q.defer();
+
+	if (arguments.length === 2 && _.isFunction(options)) {
+		callback = options;
+		options = {};
+	}
+
+	if (_.isString(links)) {
+		links = [{url: links}];
+	}
+
+	if (_.isFunction(callback)) {
+		deferred.promise.then(function (report) {
+			callback(null, report);
+		});
+	}
+
+	options = _.extend({}, browserOptions, options);
+
+	scanTargets(links, options)
+	.then(checkReport(function (state, report) {
+		deferred[state](report);
+	}));
 
 	return deferred.promise;
 };
