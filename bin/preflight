@@ -10,9 +10,17 @@ var preflight = require('./..');
 program
 	.version(pkg.version)
 	.usage('[options] <url ...>')
+	.option('-e, --engine [name]', 'Which a headless browser to use: zombie, casper [zombie]', 'zombie')
 	.parse(process.argv);
 
-preflight(program.args)
+var links = program.args;
+if (links.length === 0) {
+	program.help();
+}
+
+preflight(links, {
+	engine: program.engine
+})
 .then(function (report) {
 	console.log('Success', JSON.stringify(report, null, 3));
 }, function (report) {
