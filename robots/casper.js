@@ -20,13 +20,15 @@ var scan = function (target, options, done) {
 		}
 
 		spooky.on('error', function (error) {
+			var url = target.url;
+			var status = 0;
 			done({
 				error: {
 					code: error.code,
 					message: error.message
 				},
-				// url: (new URI(spooky.location.href)).toString(),
-				// status: browser.statusCode
+				url: (new URI(url)).toString(),
+				status: status
 			});
 		});
 
@@ -46,6 +48,7 @@ var scan = function (target, options, done) {
 		// 	}
 		// });
 
+		var timer = Date.now();
 		spooky.start(target.url);
 
 		// spooky.thenEvaluate(function () {
@@ -65,18 +68,22 @@ var scan = function (target, options, done) {
 		// });
 
 		spooky.on('run.complete', function () {
+			var url = target.url;
+			var status = 0;
+			var links = [];
+			var assets = [];
 			done(null, {
-				// url: url.toString(),
-				// status: browser.statusCode,
+				url: url,
+				status: status,
 				warnings: [],
-				// links: links,
-				// assets: assets,
-				// timing: Date.now() - timer
+				links: links,
+				assets: assets,
+				timing: Date.now() - timer
 			});
 		});
 
 		spooky.on('exit', function () {
-			console.log('exitexitexitexitexitexitexit', this);
+			console.log('On exit', this === spooky);
 		});
 
 		spooky.run();
