@@ -40,6 +40,7 @@
 		"grunt-contrib-nodeunit": "0.1.2",
 		"grunt-contrib-watch": "0.3.1",
 		"q": "*",
+		"spooky": "*",
 		"underscore": "*",
 		"URIjs": "*",
 		"werker": "0.0.1",

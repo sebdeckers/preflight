@@ -4,19 +4,6 @@ var Q = require('q');
 var _ = require('underscore');
 var werker = require('werker');
 
-var pool = werker.pool(__dirname + '/lib/robot.js')
-		.max(4)
-		.ttl(5000);
-
-var browserOptions = {
-	loadTimeout: 10 * 1000,
-	clickTimeout: 5 * 1000,
-	interactiveElements: ['a[href]', 'button'],
-	followInternalLinks: false,
-	followExternalLinks: false,
-	networkLog: undefined
-};
-
 var checkReport = function (callback) {
 	return function (promises) {
 		var isRejected = function (promise) {
@@ -42,7 +29,7 @@ var checkReport = function (callback) {
 	};
 };
 
-var scanTargets = function (links, options) {
+var scanTargets = function (pool, links, options) {
 	var scanUrl = function (link, options) {
 		var deferred = Q.defer();
 		pool.worker().scan(link, options, function (error, endpoint) {
@@ -51,7 +38,7 @@ var scanTargets = function (links, options) {
 			} else {
 				if (endpoint.links && endpoint.links.length) {
 					process.nextTick(function () {
-						scanTargets(endpoint.links, options)
+						scanTargets(pool, endpoint.links, options)
 						.then(checkReport(function (state, report) {
 							var endpoints = [endpoint].concat(report.endpoints);
 							deferred[state](endpoints);
@@ -96,9 +83,26 @@ var Preflight = function (links, options, callback) {
 		});
 	}
 
-	options = _.extend({}, browserOptions, options);
+	options = _.extend({}, {
+		loadTimeout: 10 * 1000,
+		clickTimeout: 5 * 1000,
+		interactiveElements: ['a[href]', 'button'],
+		followInternalLinks: false,
+		followExternalLinks: false,
+		networkLog: undefined
+	}, options);
 
-	scanTargets(links, options)
+	var engines = {
+		'zombie': '/robots/zombie.js',
+		'casper': '/robots/casper.js'
+	};
+
+	var pool = werker
+			.pool(__dirname + engines[options.engine])
+			.max(4)
+			.ttl(5000);
+
+	scanTargets(pool, links, options)
 	.then(checkReport(function (state, report) {
 		deferred[state](report);
 	}));
