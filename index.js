@@ -82,6 +82,14 @@ var Preflight = function (links, options, callback) {
 		links = [{url: links}];
 	}
 
+	if (_.isArray(links)) {
+		links = links.map(function (link) {
+			return _.isString(link) ?
+				{url: link} :
+				link;
+		});
+	}
+
 	if (_.isFunction(callback)) {
 		deferred.promise.then(function (report) {
 			callback(null, report);
