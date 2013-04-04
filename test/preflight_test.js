@@ -1,6 +1,6 @@
 'use strict';
 
-var preflight = require('..');
+var preflight = require('./..');
 var _ = require('underscore');
 
 /*
