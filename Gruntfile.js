@@ -8,7 +8,7 @@ module.exports = function (grunt) {
 				'Gruntfile.js',
 				'index.js',
 				'bin/*',
-				'lib/**/*.js',
+				'robots/**/*.js',
 				'<%= nodeunit.tests %>'
 			],
 			options: {
