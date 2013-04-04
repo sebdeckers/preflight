@@ -10,7 +10,8 @@ var preflight = require('./..');
 program
 	.version(pkg.version)
 	.usage('[options] <url ...>')
-	.option('-e, --engine [name]', 'Which a headless browser to use: zombie, casper [zombie]', 'zombie')
+	.option('-e, --engine [name]', 'Which a headless browser to use: ' +
+		'zombie, casper [zombie]', 'zombie')
 	.parse(process.argv);
 
 var links = program.args;
