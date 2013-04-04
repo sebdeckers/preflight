@@ -5,7 +5,7 @@ var _ = require('underscore');
 var werker = require('werker');
 
 var pool = werker.pool(__dirname + '/lib/robot.js')
-		.max(5)
+		.max(4)
 		.ttl(5000);
 
 var browserOptions = {
@@ -50,11 +50,13 @@ var scanTargets = function (links, options) {
 				deferred.reject([error]);
 			} else {
 				if (endpoint.links && endpoint.links.length) {
-					scanTargets(endpoint.links, options)
-					.then(checkReport(function (state, report) {
-						var endpoints = [endpoint].concat(report.endpoints);
-						deferred[state](endpoints);
-					}));
+					process.nextTick(function () {
+						scanTargets(endpoint.links, options)
+						.then(checkReport(function (state, report) {
+							var endpoints = [endpoint].concat(report.endpoints);
+							deferred[state](endpoints);
+						}));
+					});
 				} else {
 					deferred.resolve([endpoint]);
 				}
