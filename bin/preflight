@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 
-var pkg = require('./package.json');
-var preflight = require('./');
+'use strict';
+
 var program = require('commander');
+
+var pkg = require('./../package.json');
+var preflight = require('./..');
 
 program
 	.version(pkg.version)
